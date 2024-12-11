@@ -3,16 +3,19 @@ version: "3"
 tasks:
   curlSpec:
     cmds:
-      - curl -so service_types.json https://api.aiven.io/v1/service_types
+      - curl -so service_types.json https://aiven-rest-aiven-public-axeo-test.avns.net/v1/service_types
   curlSpecSensitive:
     requires:
       vars:
         - AIVEN_TOKEN
         - AIVEN_PROJECT_NAME
     cmds:
-      - for: [integration_types, integration_endpoint_types]
-        cmd: 'curl -so {{.ITEM}}.json https://api.aiven.io/v1/project/{{.AIVEN_PROJECT_NAME}}/{{.ITEM}} --header "Authorization: aivenv1 {{.AIVEN_TOKEN}}"'
-    silent: true
+      - >
+        curl -so integration_types.json "https://aiven-rest-aiven-public-axeo-test.avns.net/v1/project/{{.AIVEN_PROJECT_NAME}}/integration_types" --header "Authorization: aivenv1 {{.AIVEN_TOKEN}}"
+      - >
+        curl -so integration_endpoint_types.json "https://aiven-rest-aiven-public-axeo-test.avns.net/v1/project/{{.AIVEN_PROJECT_NAME}}/integration_endpoint_types" --header "Authorization: aivenv1 {{.AIVEN_TOKEN}}"
+    silent: false
+          
   generate:
     cmds:
       - go run main.go service_types.json integration_types.json integration_endpoint_types.json

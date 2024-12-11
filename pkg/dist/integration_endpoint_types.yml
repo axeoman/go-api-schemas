@@ -586,6 +586,35 @@ external_prometheus:
       type: string
       max_length: 2048
       example: https://write.example.com/
+external_redis:
+  type: object
+  required:
+    - host
+    - port
+    - password
+  properties:
+    host:
+      title: Hostname or IP address of the server
+      type: string
+      max_length: 255
+      example: my.server.com
+    password:
+      title: Password
+      type: string
+      max_length: 256
+      example: jjKk45Nnd
+      _secure: true
+    port:
+      title: Port number of the server
+      type: integer
+      minimum: 1
+      maximum: 65535
+      example: "6379"
+    username:
+      title: Username
+      type: string
+      max_length: 128
+      example: default
 external_schema_registry:
   type: object
   required:
@@ -615,6 +644,16 @@ external_schema_registry:
       type: string
       max_length: 2048
       example: https://schema-registry.kafka.company.com:28419
+external_sumologic_logs:
+  type: object
+  required:
+    - sumologic_uri
+  properties:
+    sumologic_uri:
+      title: Sumologic Http Sink URI
+      type: string
+      max_length: 2048
+      example: https://collectors.de.sumologic.com/receiver/v1/
 jolokia:
   type: object
   properties:

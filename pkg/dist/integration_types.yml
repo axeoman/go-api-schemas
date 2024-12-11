@@ -1,4 +1,13 @@
+alertmanager:
+  title: Integration user config
+  type: object
 autoscaler:
+  title: Integration user config
+  type: object
+caching:
+  title: Integration user config
+  type: object
+cassandra_cross_service_cluster:
   title: Integration user config
   type: object
 clickhouse_credentials:
@@ -477,6 +486,9 @@ flink_external_postgresql:
       enum:
         - value: unspecified
       example: unspecified
+internal_connectivity:
+  title: Integration user config
+  type: object
 jolokia:
   title: Integration user config
   type: object
@@ -753,6 +765,15 @@ metrics:
       pattern: ^[_A-Za-z0-9][-._A-Za-z0-9]{0,39}$
       example: metrics_writer
       user_error: Must consist of alpha-numeric characters, dots, underscores or dashes, may not start with dash or dot, max 40 characters
+opensearch_cluster:
+  title: Integration user config
+  type: object
+opensearch_cross_cluster_replication:
+  title: Integration user config
+  type: object
+opensearch_cross_cluster_search:
+  title: Integration user config
+  type: object
 prometheus:
   title: Integration user config
   type: object
@@ -827,9 +848,39 @@ prometheus:
               minimum: 1
               maximum: 2.592e+06
               example: "86400"
+read_replica:
+  title: Integration user config
+  type: object
 rsyslog:
   title: Integration user config
   type: object
+schema_registry_proxy:
+  title: Integration user config
+  type: object
+stresstester:
+  title: Stress tester integration user config
+  type: object
+thanos_distributed_query:
+  title: Thanos distributed query integration user config
+  type: object
 thanos_migrate:
   title: Integration user config
+  type: object
+thanoscompactor:
+  title: Thanos compact integration user config
+  type: object
+thanosquery:
+  title: Thanos query integration user config
+  type: object
+thanosruler:
+  title: Thanos ruler integration user config
+  type: object
+thanosstore:
+  title: Thanos store integration user config
+  type: object
+vector:
+  title: Vector integration user config
+  type: object
+vmalert:
+  title: VMAlert integration user config
   type: object

@@ -1,7 +1,157 @@
+alertmanager:
+  type: object
+  properties:
+    alert_rules_update_time:
+      title: Alert update time (UTC) (deprecated, use alertmanager_config_data_update_time)
+      type: string
+      max_length: 64
+      example: "2021-09-07T10:33:19.341132+00:00"
+    alertmanager_config_data_sha256_hash:
+      title: Alertmanager config data sha256 hash (hex)
+      type: string
+      min_length: 64
+      max_length: 64
+      pattern: ^[a-z0-9]{64}$
+      example: 173704a195292bed3d32ebaff5ace8810f7d02e986c43c0cb514d173dc4b2d5c
+    alertmanager_config_data_update_time:
+      title: Alertmanager config data update time (UTC)
+      type: string
+      max_length: 64
+      example: "2021-09-07T10:33:19.341132+00:00"
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
+    oauth2_proxy:
+      title: Oauth2 proxy configuration
+      type: object
+      required:
+        - provider
+        - client_id
+        - client_secret
+      properties:
+        authorized_emails:
+          title: Array of allowed email addresses
+          type: array
+          items:
+            title: Allowed email address
+            type: string
+            max_length: 319
+            pattern: ^[A-Za-z0-9_\-\.+\'&]+@(([\da-zA-Z])([_\w-]{,62})\.){,127}(([\da-zA-Z])[_\w-]{,61})?([\da-zA-Z]\.((xn\-\-[a-zA-Z\d]+)|([a-zA-Z\d]{2,})))$
+            example: admin@aiven.io
+          max_items: 1024
+        client_id:
+          title: Client id for the provider
+          type: string
+          max_length: 256
+          pattern: ^[A-Za-z0-9]+$
+          example: 10365bd44432hf885992
+        client_secret:
+          title: Client secret for the provider
+          type: string
+          max_length: 256
+          pattern: ^[A-Za-z0-9_]+$
+          example: e064bhy103654484443722885992
+          _secure: true
+        email_domains:
+          title: Array of allowed email domains
+          type: array
+          items:
+            title: Allowed email domain
+            type: string
+            max_length: 128
+            pattern: ^[-\w.*]*$
+            example: aiven.io
+          max_items: 1024
+        github_org:
+          title: The github organization to authenticate against
+          type: string
+          max_length: 256
+          pattern: ^[A-Za-z]+$
+          example: aiven
+        github_team:
+          title: The github team to grant access to
+          type: string
+          max_length: 256
+          pattern: ^[A-Za-z_-]+$
+          example: aiven
+        oidc_issuer_url:
+          title: URL to OIDC provider
+          type: string
+          max_length: 2048
+          example: https://my-okta-domain.com/oauth2/default
+        provider:
+          title: Type of provider
+          type: string
+          enum:
+            - value: github
+            - value: google
+            - value: oidc
+          max_length: 256
+          example: github
+        redirect_url:
+          title: The callback url
+          type: string
+          max_length: 2048
+          example: http://localhost:4180/oauth2/callback
+    project_file:
+      title: Project file name to use for software container initialization
+      type: string
+      max_length: 512
+      example: aiven-gw-services-1.7.0-277-ge830b49.tar
+    public_access:
+      title: Allow access to selected service ports from the public Internet
+      type: object
+      properties:
+        alertmanager:
+          title: Allow clients to connect to alertmanager from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+        karma:
+          title: Allow clients to connect to karma from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+    retention:
+      title: Data retention duration
+      description: How long to store alert and silence history for (has to be supplied in hours, e.g 14h)
+      type: string
+      max_length: 16
+      pattern: ^[0-9]+[h]$
+      example: 60h
+    service_log:
+      title: Service logging
+      description: Store logs for the service so that they are available in the HTTP API and console.
+      type: boolean
+      example: true
 alloydbomni:
   type: object
   properties:
     additional_backup_regions:
+      is_deprecated: true
+      deprecation_notice: This property is deprecated.
       title: Additional Cloud Regions for Backup Replication
       type: array
       items:
@@ -620,10 +770,123 @@ alloydbomni:
       minimum: 1
       maximum: 1024
       example: "4"
+application:
+  type: object
+  properties:
+    application:
+      title: Configuration specific to application service type
+      type: object
+      properties:
+        environment_variables:
+          title: Environment variables
+          type: array
+          items:
+            title: Environment variable
+            type: object
+            required:
+              - key
+              - value
+            properties:
+              key:
+                title: Environment variable key
+                type: string
+                min_length: 1
+                max_length: 512
+                pattern: ^[a-zA-Z][a-zA-Z0-9_]*$
+                example: DATABASE_URL
+              value:
+                title: Environment variable value
+                type: string
+                min_length: 0
+                max_length: 4096
+                pattern: ^.*$
+                example: postgresql://user:password@netloc:port/dbname
+                _secure: true
+        ports:
+          title: Ports
+          type: array
+          items:
+            title: Port
+            type: object
+            required:
+              - name
+              - port
+              - protocol
+            properties:
+              name:
+                title: Port name
+                type: string
+                min_length: 1
+                max_length: 8
+                pattern: ^[a-zA-Z](-?[a-zA-Z0-9])*$
+                example: default
+              port:
+                title: Port number
+                type: integer
+                minimum: 1
+                maximum: 65535
+                example: "80"
+              protocol:
+                title: Protocol
+                type: string
+                enum:
+                  - value: HTTP
+                  - value: HTTP/2
+                example: HTTP
+        source:
+          title: Version control system information
+          type: object
+          required:
+            - repository_url
+            - branch
+          properties:
+            branch:
+              title: Branch name
+              type: string
+              min_length: 1
+              max_length: 256
+              pattern: ^[a-zA-Z0-9\-_./]+$
+              example: main
+            repository_url:
+              title: Repository URL
+              type: string
+              min_length: 1
+              max_length: 2048
+              pattern: ^https://.+$
+              example: https://github.com/...
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
 cassandra:
   type: object
   properties:
     additional_backup_regions:
+      is_deprecated: true
+      deprecation_notice: This property is deprecated.
       title: Additional Cloud Regions for Backup Replication
       type: array
       items:
@@ -1091,6 +1354,11 @@ flink:
         example: aws-eu-central-1
         user_error: Must consist of lower-case alpha-numeric characters or dashes
       max_items: 1
+    custom_code:
+      title: Custom code enabled
+      description: Enable to upload Custom JARs for Flink applications
+      type: boolean
+      example: false
     flink_version:
       title: Flink major version
       type: string
@@ -1099,6 +1367,7 @@ flink:
           deprecation_notice: This value is deprecated.
           value: "1.16"
         - value: "1.19"
+        - value: "1.20"
       create_only: true
     ip_filter:
       title: IP filter
@@ -1182,6 +1451,8 @@ grafana:
   type: object
   properties:
     additional_backup_regions:
+      is_deprecated: true
+      deprecation_notice: This property is deprecated.
       title: Additional Cloud Regions for Backup Replication
       type: array
       items:
@@ -2748,6 +3019,7 @@ kafka:
           value: "3.6"
         - value: "3.7"
         - value: "3.8"
+        - value: "3.9"
     letsencrypt_sasl_privatelink:
       title: Use Letsencrypt CA for Kafka SASL via Privatelink
       description: Use Letsencrypt CA for Kafka SASL via Privatelink
@@ -3398,6 +3670,8 @@ m3db:
   type: object
   properties:
     additional_backup_regions:
+      is_deprecated: true
+      deprecation_notice: This property is deprecated.
       title: Additional Cloud Regions for Backup Replication
       type: array
       items:
@@ -3759,6 +4033,8 @@ mysql:
   type: object
   properties:
     additional_backup_regions:
+      is_deprecated: true
+      deprecation_notice: This property is deprecated.
       title: Additional Cloud Regions for Backup Replication
       type: array
       items:
@@ -3805,6 +4081,11 @@ mysql:
       minimum: 600
       maximum: 86400
       example: "600"
+    enable_ipv6:
+      title: Enable IPv6
+      description: Register AAAA DNS records for the service, and allow IPv6 packets to service ports
+      type: boolean
+      example: true
     ip_filter:
       title: IP filter
       description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
@@ -4192,6 +4473,8 @@ opensearch:
   type: object
   properties:
     additional_backup_regions:
+      is_deprecated: true
+      deprecation_notice: This property is deprecated.
       title: Additional Cloud Regions for Backup Replication
       type: array
       items:
@@ -4203,6 +4486,8 @@ opensearch:
         user_error: Must consist of lower-case alpha-numeric characters or dashes
       max_items: 1
     azure_migration:
+      is_deprecated: true
+      deprecation_notice: This property is deprecated.
       description: Azure migration settings
       type: object
       required:
@@ -4270,6 +4555,18 @@ opensearch:
           title: The snapshot name to restore from
           type: string
           pattern: ^[^\r\n]*$
+    cluster_name:
+      title: OpenSearch cluster name
+      description: Cluster name shared between services connected via integrations.
+      type: string
+      pattern: ^[^\r\n]*$
+      example: e5d63f5a-1f3a-4d80-b282-68df214892aa
+    cluster_nodes_roles:
+      title: OpenSearch cluster node role
+      description: A comma-delimited list of node roles for this services.
+      type: string
+      pattern: ^[^\r\n]*$
+      example: cluster_manager,data,ingest,ml
     custom_domain:
       title: Custom domain
       description: Serve the web frontend using a custom CNAME pointing to the Aiven DNS name
@@ -4282,6 +4579,8 @@ opensearch:
       type: boolean
       example: false
     gcs_migration:
+      is_deprecated: true
+      deprecation_notice: This property is deprecated.
       description: Google Cloud Storage migration settings
       type: object
       required:
@@ -5202,6 +5501,10 @@ opensearch:
           default: "128"
           minimum: 64
           maximum: 2048
+        multiple_data_source_enabled:
+          title: Enable or disable multiple data sources in OpenSearch Dashboards
+          type: boolean
+          default: true
         opensearch_request_timeout:
           title: Timeout in milliseconds for requests made by OpenSearch Dashboards towards OpenSearch
           type: integer
@@ -5276,6 +5579,8 @@ opensearch:
       pattern: ^[a-zA-Z0-9-_:.]+$
       example: backup-20191112t091354293891z
     s3_migration:
+      is_deprecated: true
+      deprecation_notice: This property is deprecated.
       description: AWS S3 / AWS S3 compatible migration settings
       type: object
       required:
@@ -5424,6 +5729,54 @@ opensearch:
     static_ips:
       title: Static IP addresses
       description: Use static public IP addresses
+      type: boolean
+      example: true
+parca:
+  type: object
+  properties:
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
+    project_file:
+      title: Project file name to use for software container initialization
+      type: string
+      max_length: 512
+      example: aiven-gw-services-1.7.0-277-ge830b49.tar
+    public_access:
+      title: Allow access to selected service ports from the public Internet
+      type: object
+      properties:
+        parca:
+          title: Allow clients to connect to parca from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+    service_log:
+      title: Service logging
+      description: Store logs for the service so that they are available in the HTTP API and console.
       type: boolean
       example: true
 pg:
@@ -5962,6 +6315,7 @@ pg:
         - value: "14"
         - value: "15"
         - value: "16"
+        - value: "17"
     pgaudit:
       is_deprecated: true
       deprecation_notice: This property is deprecated.
@@ -6311,6 +6665,8 @@ redis:
   type: object
   properties:
     additional_backup_regions:
+      is_deprecated: true
+      deprecation_notice: This property is deprecated.
       title: Additional Cloud Regions for Backup Replication
       type: array
       items:
@@ -6561,6 +6917,456 @@ redis:
       description: Use static public IP addresses
       type: boolean
       example: true
+stresstester:
+  type: object
+  properties:
+    avalanche:
+      title: Avalanche Options
+      type: object
+      properties:
+        label_count:
+          title: Number of labels per metric
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: "10"
+        metric_count:
+          title: Number of metrics to serve
+          type: integer
+          minimum: 1
+          maximum: 10000
+          example: "500"
+        remote_batch_size:
+          title: How many samples to send with each remote_write API request
+          type: integer
+          minimum: 1
+          maximum: 10000
+          example: "1000"
+        remote_request_count:
+          title: How many requests to send in total to the remote_write API per loop
+          type: integer
+          minimum: 1
+          maximum: 10000
+          example: "100"
+        remote_request_interval_ms:
+          title: Delay between each remote write request, per loop
+          type: integer
+          minimum: 10
+          maximum: 1000
+          example: "100"
+        series_count:
+          title: Number of series per metric
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: "10"
+    env:
+      title: Environmental variables
+      type: object
+      default: {}
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
+    kafka:
+      title: Kafka Options
+      type: object
+      properties:
+        load_level:
+          title: How high should the resource be utilized (percentage)
+          type: integer
+          minimum: 10
+          maximum: 100
+          example: "25"
+        load_type:
+          title: What resource should be tested
+          type: string
+          enum:
+            - value: cpu
+            - value: memory
+          example: cpu
+    memtier_benchmark:
+      title: memtier_benchmark options
+      type: object
+      properties:
+        clients:
+          title: 'Number of clients per thread (default: 50)'
+          type: integer
+          minimum: 1
+          maximum: 10000
+          example: "50"
+        data_size:
+          title: 'Object data size in bytes (default: 32)'
+          type: integer
+          minimum: 1
+          maximum: 10000
+          example: "32"
+        data_size_pattern:
+          title: 'Use together with data-size-range when set to ''R'', a random size from the defined data sizes will be used, when set to ''S'', the defined data sizes will be evenly distributed across the key range, see key_maximum (default: `R`)'
+          type: string
+          enum:
+            - value: R
+            - value: S
+          example: R
+        data_size_range:
+          title: Use random-sized items in the specified range (min-max)
+          type: string
+          max_length: 41
+          pattern: ^[0-9]{1,20}-[0-9]{1,20}$
+          example: 1-100000
+        expiry_range:
+          title: Use random expiry values from the specified range
+          type: string
+          max_length: 41
+          pattern: ^[0-9]{1,20}-[0-9]{1,20}$
+          example: 1-100
+        key_maximum:
+          title: 'Key ID maximum value (default: 10000000)'
+          type: integer
+          minimum: 1
+          example: "10000000"
+        key_minimum:
+          title: 'Key ID minimum value (default: 0)'
+          type: integer
+          minimum: 0
+          example: "1"
+        key_pattern:
+          title: 'Set:Get pattern (default: R:R). G for Gaussian distribution, R for uniform Random, S for Sequential, P for Parallel (Sequential were each client has a subset of the key-range).'
+          type: string
+          max_length: 3
+          pattern: ^[GPRS]:[GPRS]$
+          example: R:R
+        multi_key_get:
+          title: 'Enable multi-key get commands, up to NUM keys (default: 0)'
+          type: integer
+          minimum: 0
+          maximum: 2.147483647e+09
+          example: "100"
+        pipeline:
+          title: 'Number of concurrent pipelined requests (default: 1)'
+          type: integer
+          minimum: 1
+          maximum: 4.294967295e+09
+          example: "100"
+        ratio:
+          title: 'Set:Get ratio, default: 1:10'
+          type: string
+          max_length: 21
+          pattern: ^[0-9]{1,10}:[0-9]{1,10}$
+          example: "1:10"
+        reconnect_interval:
+          title: Number of requests after which re-connection is performed
+          type: integer
+          minimum: 1
+          maximum: 4.294967295e+09
+          example: "100"
+        requests:
+          title: 'Number of total requests per client (default: 10000)'
+          type: integer
+          minimum: 1
+          maximum: 1e+09
+          example: "10000"
+        run_count:
+          title: Number of full-test iterations to perform
+          type: integer
+          minimum: 1
+          maximum: 10000
+          example: "1"
+        test_time:
+          title: Number of seconds to run the test
+          type: integer
+          minimum: 1
+          maximum: 10000
+          example: "100"
+        threads:
+          title: 'Number of threads (default: 4)'
+          type: integer
+          minimum: 1
+          maximum: 10000
+          example: "1000"
+    pgbench:
+      title: pgbench options
+      type: object
+      properties:
+        builtin:
+          title: add builtin script
+          type: string
+          enum:
+            - value: select-only
+            - value: simple-update
+            - value: tpcb-like
+          example: tpcb-like
+        client:
+          title: 'number of concurrent database clients (default: 1)'
+          type: integer
+          minimum: 1
+          maximum: 2.147483647e+09
+          example: "1"
+        connect:
+          title: 'establish new connection for each transaction (default: False)'
+          type: boolean
+          example: false
+        fillfactor:
+          title: 'set fill factor (default: 100)'
+          type: integer
+          minimum: 10
+          maximum: 100
+          example: "100"
+        foreign_keys:
+          title: 'create foreign key constraints between tables (default: True)'
+          type: boolean
+          example: true
+        init_steps:
+          title: 'run selected initialization steps (default: dtgvp)'
+          type: string
+          max_length: 100
+          pattern: ^[dtgGvpf]+$
+          example: dtgvp
+        jobs:
+          title: 'number of threads (default: 1)'
+          type: integer
+          minimum: 1
+          maximum: 2.147483647e+09
+          example: "1"
+        latency_limit:
+          title: 'count transactions lasting more than NUM ms as late (default: no latency limit)'
+          type: number
+          minimum: 0.1
+          maximum: 2.147483647e+09
+          example: "1.0"
+        max_tries:
+          title: 'max number of tries to run transaction (default: 1)'
+          type: integer
+          minimum: 0
+          maximum: 2.147483647e+09
+          example: "1"
+        no_vacuum:
+          title: 'do not run VACUUM before tests (default: False)'
+          type: boolean
+          example: false
+        partition_method:
+          title: 'partition pgbench_accounts with this method (default: range)'
+          type: string
+          enum:
+            - value: hash
+            - value: range
+          example: range
+        partitions:
+          title: 'partition pgbench_accounts into NUM parts (default: 0)'
+          type: integer
+          minimum: 0
+          maximum: 2.147483647e+09
+        pgbouncer:
+          title: 'connect to pgbouncer (default: False)'
+          type: boolean
+          example: false
+        protocol:
+          title: 'protocol for submitting queries (default: simple)'
+          type: string
+          enum:
+            - value: extended
+            - value: prepared
+            - value: simple
+          example: simple
+        rate:
+          title: 'target rate in transactions per second (default: no target rate)'
+          type: number
+          minimum: 0.01
+          maximum: 2.147483647e+09
+          example: "1.0"
+        scale:
+          title: 'scaling factor (default: 1)'
+          type: integer
+          minimum: 1
+          maximum: 2.147483647e+09
+          example: "1"
+        time:
+          title: 'duration of benchmark test in seconds (default: no duration limit)'
+          type: integer
+          minimum: 0
+          maximum: 2.147483647e+09
+          example: "0"
+        transactions:
+          title: 'number of transactions each client runs (default: 10)'
+          type: integer
+          minimum: 1
+          maximum: 2.147483647e+09
+          example: "10"
+        unlogged_tables:
+          title: 'create tables as unlogged tables (default: False)'
+          type: boolean
+          example: false
+        vacuum_all:
+          title: 'vacuum all four standard tables before tests (default: False)'
+          type: boolean
+          example: false
+    qb:
+      title: qb options
+      type: object
+      properties:
+        nagents:
+          title: 'Number of agents. (default: 1)'
+          type: integer
+          minimum: 1
+          example: "1"
+        rate:
+          title: 'Rate limit for each agent (qps). Zero is unlimited. (default: 0)'
+          type: integer
+          minimum: 0
+          example: "0"
+        scale:
+          title: 'Scaling factor. (default: 1)'
+          type: integer
+          minimum: 1
+          example: "1"
+        time:
+          title: 'Test run time (sec). Zero is infinity. (default: 60)'
+          type: integer
+          minimum: 0
+          example: "60"
+        type:
+          title: 'Transaction type (tpcb-like,simple-update,select-only). (default: tpcb-like)'
+          type: string
+          enum:
+            - value: select-only
+            - value: simple-update
+            - value: tpcb-like
+          example: tpcb-like
+    service_log:
+      title: Service logging
+      description: Store logs for the service so that they are available in the HTTP API and console.
+      type: boolean
+      example: true
+    static_ips:
+      title: Static IP addresses
+      description: Use static public IP addresses
+      type: boolean
+      example: true
+sw:
+  type: object
+  properties:
+    enable_ipv6:
+      title: Enable IPv6
+      description: Register AAAA DNS records for the service, and allow IPv6 packets to service ports
+      type: boolean
+      example: true
+    env:
+      title: Environmental variables
+      type: object
+      default: {}
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
+    max_memory:
+      type: object
+      example: '{"web": "1.5G"}'
+    num_topics:
+      title: Number of topics
+      type: object
+    num_workers:
+      title: Number of worker processes
+      type: object
+    project_file:
+      title: Project file name to use for software container initialization
+      type: string
+      max_length: 512
+      example: aiven-gw-services-1.7.0-277-ge830b49.tar
+    proxy_definitions:
+      title: Proxy definitions
+      type: object
+    public_access:
+      title: Allow access to selected service ports from the public Internet
+      type: object
+      properties:
+        tcp:
+          title: Allow clients to connect to tcp from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+        web:
+          title: Allow clients to connect to web from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+    service_log:
+      title: Service logging
+      description: Store logs for the service so that they are available in the HTTP API and console.
+      type: boolean
+      example: true
+    standby_mgmt_service:
+      title: Run service in standby mode, accept a read-only replica of aivendb service and wait for promotion before starting operations
+      type: boolean
+    static_ips:
+      title: Static IP addresses
+      description: Use static public IP addresses
+      type: boolean
+      example: true
+    tcp_port:
+      title: Port on which a TCP service is exposed
+      type: integer
+      default: "10800"
+      minimum: 1024
+      maximum: 32000
+    tcp_port_private:
+      title: Port on which a TCP service is exposed (only internally within vpc)
+      type: integer
+      minimum: 1024
+      maximum: 32000
+    use_aivendb_replica:
+      title: Use aiven-db-replica-aws service instead of primary aivendb
+      type: boolean
+    use_pruned_config_redis_replica:
+      title: Use redis replica service identified by pruned_config_redis_service_name_aws instead of pruned_config_redis_service_name
+      type: boolean
+    web:
+      title: Aiven Web service settings
+      type: object
+      default: {}
 thanos:
   type: object
   properties:
@@ -6746,10 +7552,453 @@ thanos:
       title: Thanos Store User Configuration
       description: Configuration options for Thanos Store.
       type: object
+thanoscompactor:
+  type: object
+  properties:
+    compactor:
+      title: Thanos Compactor User Configuration
+      description: Configuration options for Thanos Compactor.
+      type: object
+      properties:
+        retention.days:
+          title: Retention time for data in days
+          description: Retention time for data in days for each resolution (5m, 1h, raw)
+          type: integer
+          minimum: 0
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
+    public_access:
+      title: Allow access to selected service ports from the public Internet
+      type: object
+      properties:
+        compactor:
+          title: Allow clients to connect to compactor from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+    service_log:
+      title: Service logging
+      description: Store logs for the service so that they are available in the HTTP API and console.
+      type: boolean
+      example: true
+    static_ips:
+      title: Static IP addresses
+      description: Use static public IP addresses
+      type: boolean
+      example: true
+thanosquery:
+  type: object
+  properties:
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
+    public_access:
+      title: Allow access to selected service ports from the public Internet
+      type: object
+      properties:
+        query:
+          title: Allow clients to connect to query from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+        query_frontend:
+          title: Allow clients to connect to query_frontend from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+    query:
+      title: Thanos Query User Configuration
+      description: Configuration options for Thanos Query.
+      type: object
+      properties:
+        query.default-evaluation-interval:
+          title: Set the default evaluation interval for subqueries.
+          description: Set the default evaluation interval for subqueries.
+          type: string
+          default: 1m
+          max_length: 20
+        query.lookback-delta:
+          title: Maximum lookback duration for retrieving metrics during expression evaluations in PromQL
+          description: The maximum lookback duration for retrieving metrics during expression evaluations in PromQL. PromQL always evaluates the query for a certain timestamp, and it looks back for the given amount of time to get the latest sample. If it exceeds the maximum lookback delta, it assumes the series is stale and returns none (a gap). The lookback delta should be set to at least 2 times the slowest scrape interval. If unset, it will use the promql default of 5m.
+          type: string
+          default: 5m
+          max_length: 20
+        query.metadata.default-time-range:
+          title: Default metadata time range duration for retrieving labels
+          description: The default metadata time range duration for retrieving labels through Labels and Series API when the range parameters are not specified. The zero value means the range covers the time since the beginning.
+          type: string
+          default: 0s
+          max_length: 20
+        query.timeout:
+          title: Maximum time to process a query by the query node.
+          description: Maximum time to process a query by the query node.
+          type: string
+          default: 2m
+          max_length: 20
+        store.limits.request-samples:
+          title: Store.Limits.Request-Samples
+          description: 'The maximum samples allowed for a single Series request. The Series call fails if this limit is exceeded. Set to 0 for no limit. NOTE: For efficiency, the limit is internally implemented as ''chunks limit'' considering each chunk contains a maximum of 120 samples. The default value is 100 * store.limits.request-series.'
+          type: integer
+          default: "0"
+          minimum: 0
+          maximum: 1e+08
+        store.limits.request-series:
+          title: Store.Limits.Request-Series
+          description: The maximum series allowed for a single Series request. The Series call fails if this limit is exceeded. Set to 0 for no limit. The default value is 1000 * cpu_count.
+          type: integer
+          default: "0"
+          minimum: 0
+          maximum: 1e+08
+    query-frontend:
+      title: Thanos Query Frontend User Configuration
+      description: Configuration options for Thanos Query Frontend.
+      type: object
+      properties:
+        query-range.align-range-with-step:
+          title: Whether to align the query range boundaries with the step.
+          description: Whether to align the query range boundaries with the step. If enabled, the query range boundaries will be aligned to the step, providing more accurate results for queries with high-resolution data.
+          type: boolean
+          default: true
+        redis:
+          title: Thanos Query Frontend Redis User Configuration
+          description: Configuration options for Thanos Query Frontend Redis.
+          type: object
+          required:
+            - labels
+            - query_range
+          properties:
+            labels:
+              title: Thanos Redis Cache User Configuration
+              description: Configuration options for Thanos Redis Cache.
+              type: object
+              properties:
+                cache_size:
+                  title: Cache Size
+                  type: string
+                  default: "0"
+                dial_timeout:
+                  title: Dial Timeout
+                  type: string
+                  default: 5s
+                expiration:
+                  title: Expiration
+                  type: string
+                  default: 24h0m0s
+                read_timeout:
+                  title: Read Timeout
+                  type: string
+                  default: 3s
+                write_timeout:
+                  title: Write Timeout
+                  type: string
+                  default: 3s
+            query_range:
+              title: Thanos Redis Cache User Configuration
+              description: Configuration options for Thanos Redis Cache.
+              type: object
+              properties:
+                cache_size:
+                  title: Cache Size
+                  type: string
+                  default: "0"
+                dial_timeout:
+                  title: Dial Timeout
+                  type: string
+                  default: 5s
+                expiration:
+                  title: Expiration
+                  type: string
+                  default: 24h0m0s
+                read_timeout:
+                  title: Read Timeout
+                  type: string
+                  default: 3s
+                write_timeout:
+                  title: Write Timeout
+                  type: string
+                  default: 3s
+    service_log:
+      title: Service logging
+      description: Store logs for the service so that they are available in the HTTP API and console.
+      type: boolean
+      example: true
+    static_ips:
+      title: Static IP addresses
+      description: Use static public IP addresses
+      type: boolean
+      example: true
+thanosreceiver:
+  type: object
+  properties:
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
+    public_access:
+      title: Allow access to selected service ports from the public Internet
+      type: object
+      properties:
+        receiver_ingesting:
+          title: Allow clients to connect to receiver_ingesting from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+        receiver_routing:
+          title: Allow clients to connect to receiver_routing from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+    receiver-ingesting:
+      title: Common Thanos Receive User Configuration
+      description: Common configuration options for Thanos Receive.
+      type: object
+    receiver-routing:
+      title: Thanos Receive Routing User Configuration
+      description: Configuration options for Thanos Receive Routing.
+      type: object
+    service_log:
+      title: Service logging
+      description: Store logs for the service so that they are available in the HTTP API and console.
+      type: boolean
+      example: true
+    static_ips:
+      title: Static IP addresses
+      description: Use static public IP addresses
+      type: boolean
+      example: true
+thanosruler:
+  type: object
+  properties:
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
+    public_access:
+      title: Allow access to selected service ports from the public Internet
+      type: object
+      properties:
+        ruler:
+          title: Allow clients to connect to ruler from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+    ruler:
+      title: Thanos Ruler User Configuration
+      description: Configuration options for Thanos Ruler.
+      type: object
+    service_log:
+      title: Service logging
+      description: Store logs for the service so that they are available in the HTTP API and console.
+      type: boolean
+      example: true
+    static_ips:
+      title: Static IP addresses
+      description: Use static public IP addresses
+      type: boolean
+      example: true
+thanosstore:
+  type: object
+  properties:
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
+    public_access:
+      title: Allow access to selected service ports from the public Internet
+      type: object
+      properties:
+        store:
+          title: Allow clients to connect to store from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+    service_log:
+      title: Service logging
+      description: Store logs for the service so that they are available in the HTTP API and console.
+      type: boolean
+      example: true
+    static_ips:
+      title: Static IP addresses
+      description: Use static public IP addresses
+      type: boolean
+      example: true
+    store:
+      title: Thanos Store User Configuration
+      description: Configuration options for Thanos Store.
+      type: object
+      properties:
+        redis:
+          title: Thanos Store Redis User Configuration
+          description: Configuration options for Thanos Store Redis.
+          type: object
+          properties:
+            bucket:
+              title: Thanos Redis Cache User Configuration
+              description: Configuration options for Thanos Redis Cache.
+              type: object
+              properties:
+                cache_size:
+                  title: Cache Size
+                  type: string
+                  default: "0"
+                dial_timeout:
+                  title: Dial Timeout
+                  type: string
+                  default: 5s
+                expiration:
+                  title: Expiration
+                  type: string
+                  default: 24h0m0s
+                read_timeout:
+                  title: Read Timeout
+                  type: string
+                  default: 3s
+                write_timeout:
+                  title: Write Timeout
+                  type: string
+                  default: 3s
+            index:
+              title: Thanos Redis Cache User Configuration
+              description: Configuration options for Thanos Redis Cache.
+              type: object
+              properties:
+                cache_size:
+                  title: Cache Size
+                  type: string
+                  default: "0"
+                dial_timeout:
+                  title: Dial Timeout
+                  type: string
+                  default: 5s
+                expiration:
+                  title: Expiration
+                  type: string
+                  default: 24h0m0s
+                read_timeout:
+                  title: Read Timeout
+                  type: string
+                  default: 3s
+                write_timeout:
+                  title: Write Timeout
+                  type: string
+                  default: 3s
 valkey:
   type: object
   properties:
     additional_backup_regions:
+      is_deprecated: true
+      deprecation_notice: This property is deprecated.
       title: Additional Cloud Regions for Backup Replication
       type: array
       items:
@@ -6995,3 +8244,155 @@ valkey:
       default: "300"
       minimum: 0
       maximum: 2.0736e+06
+vector:
+  type: object
+  properties:
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
+    project_file:
+      title: Project file name to use for software container initialization
+      type: string
+      max_length: 512
+      example: aiven-gw-services-1.7.0-277-ge830b49.tar
+    public_access:
+      title: Allow access to selected service ports from the public Internet
+      type: object
+      properties:
+        vector:
+          title: Allow clients to connect to vector from the public internet for service nodes that are in a project VPC or another type of private network
+          type: boolean
+          example: true
+    service_log:
+      title: Service logging
+      description: Store logs for the service so that they are available in the HTTP API and console.
+      type: boolean
+      example: true
+    vector_config_data_sha256_hash:
+      title: Vector config data sha256 hash (hex)
+      type: string
+      min_length: 64
+      max_length: 64
+      pattern: ^[a-z0-9]{64}$
+      example: 173704a195292bed3d32ebaff5ace8810f7d02e986c43c0cb514d173dc4b2d5c
+    vector_config_data_update_time:
+      title: Vector config data update time (UTC)
+      type: string
+      max_length: 64
+      example: "2021-09-07T10:33:19.341132+00:00"
+vmalert:
+  type: object
+  properties:
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
+    project_file:
+      title: Project file name to use for software container initialization
+      type: string
+      max_length: 512
+      example: aiven-gw-services-1.7.0-277-ge830b49.tar
+    service_log:
+      title: Service logging
+      description: Store logs for the service so that they are available in the HTTP API and console.
+      type: boolean
+      example: true
+    vmalert_config_data_sha256_hash:
+      title: VMalert config data sha256 hash (hex)
+      type: string
+      min_length: 64
+      max_length: 64
+      pattern: ^[a-z0-9]{64}$
+      example: 173704a195292bed3d32ebaff5ace8810f7d02e986c43c0cb514d173dc4b2d5c
+    vmalert_config_data_update_time:
+      title: VMalert config data update time (UTC)
+      type: string
+      max_length: 64
+      example: "2021-09-07T10:33:19.341132+00:00"
+warpstream:
+  type: object
+  properties:
+    ip_filter:
+      title: IP filter
+      description: Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
+      type: array
+      default:
+        - 0.0.0.0/0
+      items:
+        title: CIDR address block, either as a string, or in a dict with an optional description field
+        type:
+          - string
+          - object
+        required:
+          - network
+        properties:
+          description:
+            title: Description for IP filter list entry
+            type: string
+            max_length: 1024
+            example: Production service IP range
+          network:
+            title: CIDR address block
+            type: string
+            max_length: 43
+            example: 10.20.0.0/16
+        max_length: 43
+        example: 10.20.0.0/16
+      max_items: 1024
+    project_file:
+      title: Project file name to use for software container initialization
+      type: string
+      max_length: 512
+      example: aiven-gw-services-1.7.0-277-ge830b49.tar
+    service_log:
+      title: Service logging
+      description: Store logs for the service so that they are available in the HTTP API and console.
+      type: boolean
+      example: true
